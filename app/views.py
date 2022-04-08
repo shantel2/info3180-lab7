@@ -12,6 +12,7 @@ from .forms import UploadForm
 from werkzeug.utils import secure_filename
 from flask_wtf.csrf import generate_csrf
 
+
 ###
 # Routing for your application.
 ###
@@ -21,24 +22,29 @@ def index():
     return jsonify(message="This is the beginning of our API")
 
 
-
 @app.route('/api/upload', methods=['POST'])
 def upload():
     uform = UploadForm()
-    if request.method == 'POST' and uform.validate_on_submit():
-        description = uform.description.data
-        photo = uform.photo.data
-        filename = secure_filename(photo.filename)
-        photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    if request.method == 'POST':
+        if uform.validate_on_submit():
+            description = uform.description.data
+            photo = uform.photo.data
+            filename = secure_filename(photo.filename)
+            photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-        upload = {
-            "message": "File Upload Successful",
-            "filename": filename,
-            "description": description
-        }
-        return jsonify(upload=upload)
+            upload = {
+                "message": "File Upload Successful",
+                "filename": filename,
+                "description": description
+            }
+            return jsonify(upload=upload)
 
     return jsonify(form_errors(uform))
+
+
+@app.route('/api/csrf-token', methods=['GET'])
+def get_csrf():
+    return jsonify({'csrf_token': generate_csrf()})
 
 ###
 # The functions below should be applicable to all Flask apps.
@@ -83,9 +89,7 @@ def page_not_found(error):
     """Custom 404 page."""
     return render_template('404.html'), 404
 
-@app.route('/api/csrf-token', methods=['GET'])
-def get_csrf():
- return jsonify({'csrf_token': generate_csrf()})
+
 
 
 if __name__ == '__main__':
